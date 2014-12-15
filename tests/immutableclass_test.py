@@ -3,6 +3,7 @@ Unit test for the immutable class
 """
 
 import unittest
+import collections
 
 from immutableclass import ImmutableClass
 
@@ -136,3 +137,28 @@ class ImmutableClassTest(unittest.TestCase):
 
         self.assertEqual(hash(self.jsmith), hash(jsmith2))
         self.assertNotEqual(hash(self.jsmith), hash(young))
+
+    def test_asdict(self):
+
+        """Tests the asdict methods"""
+
+        plain_def_dict = self.jsmith._asdict()
+        plain_full_dict = self.jsmith._asdict(full=True)
+        ordered_def_dict = self.jsmith._asdict(ordered=True)
+        ordered_full_dict = self.jsmith._asdict(full=True, ordered=True)
+
+        for i in [plain_def_dict, plain_full_dict,
+                  ordered_full_dict, ordered_full_dict]:
+            self.assertEqual(i['first_name'], 'John')
+            self.assertEqual(i['last_name'], 'Smith')
+            self.assertEqual(i['age'], 49)
+
+        for i in [plain_def_dict, plain_full_dict]:
+            self.assertEqual(plain_def_dict.__class__, dict)
+        for i in [ordered_def_dict, ordered_full_dict]:
+            self.assertEqual(i.__class__, collections.OrderedDict)
+
+        for i in [plain_def_dict, ordered_def_dict]:
+            self.assertEqual(len(i), 3)
+        for i in [plain_full_dict, ordered_full_dict]:
+            self.assertEqual(i['full_name'], 'Smith, John')

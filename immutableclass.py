@@ -4,6 +4,7 @@ Definition of a metaclass for immutable user-defined objects
 
 import functools
 import itertools
+import collections
 
 
 #
@@ -141,9 +142,38 @@ class ImmutableClass(type):
 
         new_nmspc['__setattr__'] = setattr_meth
 
-        # Class generation
+        # Dictionary returning
+        def asdict_meth(self, full=False, ordered=False):
+
+            """Returns an dictionary which maps field names to values
+
+            :param bool full: If the data fields are going to be contained as
+                well, by default only the defining fields are contained.
+            :param bool ordered: If OrderedDict or plain dictionary is going to
+                be used for holding the return value. By default a plain
+                dictionary is going to be used.
+
+            """
+
+            included_fields = fields if full else fields[0:defining_count]
+            container = collections.OrderedDict if ordered else dict
+
+            return container(
+                zip(included_fields, self)
+                )
+
+        new_nmspc['_asdict'] = asdict_meth
+
+        # Pickling support
         # ----------------
 
+        new_nmspc['__getnewargs__'] = lambda self: self[0:defining_count]
+        new_nmspc['__getstate__'] = lambda self: False
+        new_nmspc['__setstate__'] = lambda self, state: False
+
+        # Class generation
+        # ----------------
+        #
         # Set the base to tuple for the bottom classes in inheritance trees
         if len(bases) == 0:
             bases = (tuple, )
@@ -152,7 +182,7 @@ class ImmutableClass(type):
         return type.__new__(mcs, name, bases, new_nmspc)
 
     def __init__(cls, *args, **kwargs):
-        pass
+        super().__init__(*args)
 
 
 #
