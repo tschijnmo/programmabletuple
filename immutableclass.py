@@ -128,7 +128,9 @@ class ImmutableClass(type):
 
         # hash method
         if '__hash__' not in new_nmspc:
-            new_nmspc['__hash__'] = lambda x: hash(x[0:defining_count])
+            new_nmspc['__hash__'] = lambda x: hash(
+                (id(x.__class__), ) + x[0:defining_count]
+                )
 
         # Better error for attempts to mutate
         def setattr_meth(self, attr, value):

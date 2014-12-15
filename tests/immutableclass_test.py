@@ -129,6 +129,8 @@ class ImmutableClassTest(unittest.TestCase):
 
     def test_hashing(self):
 
+        """Tests the correctness of hashing"""
+
         jsmith2 = self.Person('John', 'Smith', 49)
         young = self.Person('John', 'Smith', 3)
 
