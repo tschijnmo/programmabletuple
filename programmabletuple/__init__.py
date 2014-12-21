@@ -182,7 +182,7 @@ class ProgrammableTuple(type):
         return type.__new__(mcs, name, bases, new_nmspc)
 
     def __init__(cls, *args, **kwargs):
-        super().__init__(*args)
+        super(ProgrammableTuple, cls).__init__(*args)
 
 
 #
