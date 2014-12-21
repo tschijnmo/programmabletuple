@@ -8,6 +8,9 @@ defined classes
 .. image:: https://travis-ci.org/tschijnmo/programmabletuple.svg?branch=master
     :target: https://travis-ci.org/tschijnmo/programmabletuple
 
+.. image:: https://badge.fury.io/py/programmabletuple.svg
+    :target: http://badge.fury.io/py/programmabletuple
+
 In essence, the programmable tuple metaclass in this module is able to make
 user-defined classes in Python has got the immutability of named tuple while
 retaining the programmability of user-defined classes. Merely minimal change

@@ -10,6 +10,6 @@ setup(name='programmabletuple',
       author_email='tschijnmotschau@gmail.com',
       url='https://github.com/tschijnmo/programmabletuple',
       license='MIT',
-      py_modules=['programmabletuple', ],
+      packages=['programmabletuple', ],
      )
 
