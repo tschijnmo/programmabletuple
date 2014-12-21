@@ -10,4 +10,5 @@ install:
 # command to run tests
 script: nosetests --with-coverage --cover-package=programmabletuple
 after_success:
+    - pip install coveralls
     - coveralls

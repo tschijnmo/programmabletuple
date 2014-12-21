@@ -8,6 +8,9 @@ defined classes
 .. image:: https://travis-ci.org/tschijnmo/programmabletuple.svg?branch=master
     :target: https://travis-ci.org/tschijnmo/programmabletuple
 
+.. image:: https://coveralls.io/repos/tschijnmo/programmabletuple/badge.png
+    :target: https://coveralls.io/r/tschijnmo/programmabletuple 
+
 .. image:: https://badge.fury.io/py/programmabletuple.svg
     :target: http://badge.fury.io/py/programmabletuple
 
