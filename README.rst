@@ -1,37 +1,41 @@
-immutableclass
-==============
+programmabletuple
+=================
 
-Python metaclass for making instances of user-defined classes immutable
+Python metaclass for making named tuples with the programmability of user-
+defined classes
 
-.. image:: https://travis-ci.org/tschijnmo/immutableclass.svg?branch=master
-    :target: https://travis-ci.org/tschijnmo/immutableclass
+.. image:: https://travis-ci.org/tschijnmo/programmabletuple.svg?branch=master
+    :target: https://travis-ci.org/tschijnmo/programmabletuple
 
-This module provides a metaclass for making the instances of user-defined
-classes immutable. Its basic functionality is modelled after
-:py:cls:`collections.namedtuple`, but it offers more object-orientation and
-programmability. Basically, here instances of immutable classes are frozen
-once they are initialized. Any attempt to mutate the state of the instance
-will cause an error. Otherwise they are designed to behave as similar to
-the instances of the plain mutable classes as possible.
+This module provides a metaclass for making user-defined classes behave like
+named tuple while retaining the programmability of the classes. Its basic
+functionality is directly modelled after :py:cls:`collections.namedtuple`, but
+it offers more object-orientation and programmability. Basically, here
+instances of programmable tuples are frozen once they are initialized, like
+the normal named tuple. Any attempt to mutate the state of the instance will
+cause an error. Except for this they are designed to behave as similar to the
+instances of the plain mutable classes as possible, including their
+programmability.
 
-The basic motivation for this is to make code more secure and less error-prone.
-Frequently in Python code, we have got structures (any structure) holding
-references to instances of user-defined classes, which by default are all
-mutable. But sometimes the correctness of the behaviour of the structure would
-depend on the assumption that the objects that these references point to will
-not be mutated. A solution to this problem is to make copies of the instances
-into the structure rather than just hold a reference and share the actual
-object. In this way, other parts of the code could safely mutate the states of
-the instances without any undesirable side effect. However, the copying comes
-with cost. For cases where the the objects referenced will almost definitely be
-mutated, this cost is necessary. But for cases where the objects are unlikely
-to be mutated in the majority of cases, the copying might cease to be an
-economical choice. So the basic idea of this metaclass is that we could have a
-means to enforce the references to be pointing the the same value, and we can
-still make new instances out of the old ones if they really need to be mutated.
-It can be construed as an attempt to make Python more functional while
-maintaining its object-orientated aspect. The resulted immutable class
-resembles a hybrid of the Haskell record and the user-defined class in Python.
+The basic motivation for this is to make code more secure and less error-
+prone. Frequently in Python code, we have got structures (any structure)
+holding references to instances of user-defined classes, which by default are
+all mutable. But sometimes the correctness of the behaviour of the structure
+would depend on the assumption that the objects that these references point to
+will not be mutated. A solution to this problem is to make copies of the
+instances into the structure rather than just hold a reference and share the
+actual object. In this way, other parts of the code could safely mutate the
+states of the instances without any undesirable side effect. However, the
+copying comes with cost. For cases where the the objects referenced will
+almost definitely be mutated, this cost is necessary. But for cases where the
+objects are unlikely to be mutated in the majority of cases, the copying might
+cease to be an economical choice. So the basic idea of this metaclass is that
+we could have a means to enforce the references to be pointing the the same
+value, and we can still make new instances out of the old ones if they really
+need to be mutated. It can be construed as an attempt to make Python more
+functional while maintaining its object-orientated aspect. The resulted
+programmable tuple resembles a hybrid of the Haskell record and the user-
+defined class in Python.
 
 Basic usage
 -----------
@@ -41,21 +45,21 @@ Fields
 
 Since all the information about instances of an immutable class needs to be
 given to the initializer, the arguments of the initializer uniquely define
-values of the immutable class. Hence they are called the defining fields of the
-class. Besides the defining fields, additional fields can be added to the class
-instances to hold some other essential data. These fields are going to be
-termed the data fields. This can be achieved by assigning a list of names to
-the ``__fields__`` attribute of the class, in the same way as the ``__slots__``
-attribute is used. And the actual value for the data fields can be set in the
-initializer in the same way as normal. For example, to define an immutable
-class for people to store their first and last name, and we would like the
-instances to carry the full name with comma separation for alphabetization, we
-can just define
+values of the immutable class. Hence they are called the defining fields of
+the class. Besides the defining fields, additional fields can be added to the
+class instances to hold some other essential data. These fields are going to
+be termed the data fields. This can be achieved by assigning a list of names
+to the ``__data_fields__`` attribute of the class, in the same way as the
+``__slots__`` attribute is used. And the actual value for the data fields can
+be set in the initializer in the same way as normal. For example, to define an
+programmable tuple for people to store their first and last name, and we would
+like the instances to carry the full name with comma separation for
+alphabetization, we can just define
 
 .. code:: python
 
-    class Person(metaclass=ImmutableClass):
-        __fields__ = ['full_name']
+    class Person(metaclass=ProgrammableTuple):
+        __data_fields__ = ['full_name']
         def __init__(self, first_name, last_name):
             self.full_name = ', '.join([last_name, first_name])
 
@@ -125,19 +129,19 @@ methods could carry the actual semantics of the update operation.
 Inheritance
 ^^^^^^^^^^^
 
-Immutable classes can inherit from other immutable classes. And this
-inheritance has been made to be as similar to the plain mutable classes as
-possible. Instances of subclass are instances of the corresponding superclass
-and has access to all the methods of the superclass. There is just one notable
-difference, in the initializer, the built-in ``super`` function is not working
-as before. To call the initializer of superclass, we can either use
-``self.super().__init__`` instead, or we can name the superclass explicitly,
-like ``SuperClass.__init__(self, args)``.
+Programmable tuple classes can inherit from other programmable tuple classes.
+And this inheritance has been made to be as similar to the plain mutable
+classes as possible. Instances of subclass are instances of the corresponding
+superclass and has access to all the methods of the superclass. There is just
+one notable difference, in the initializer, the built-in ``super`` function is
+not working as before. To call the initializer of superclass, we can either
+use ``self.super().__init__`` instead, or we can name the superclass
+explicitly, like ``SuperClass.__init__(self, args)``.
 
 Miscellaneous
 ^^^^^^^^^^^^^
 
-Instances of an immutable class with all the defining fields hashable are
+Instances of an programmable tuples with all the defining fields hashable are
 hashable. The default hashing function is the default hashing of the tuple
 formed by the class identity and the defining fields.
 

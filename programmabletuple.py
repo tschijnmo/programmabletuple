@@ -1,5 +1,5 @@
 """
-Definition of a metaclass for immutable user-defined objects
+Definition of a metaclass for making named tuple with programmability
 """
 
 import functools
@@ -12,17 +12,17 @@ import collections
 # =============
 #
 
-class ImmutableClass(type):
+class ProgrammableTuple(type):
 
     """Immutable class metaclass derived from tuple"""
 
     def __new__(mcs, name, bases, nmspc, default_attr=lambda _: None):
 
-        """Generates a new type instance for the immutable class"""
+        """Generates a new type instance for the programmable tuple class"""
 
         # Make a shallow copy of the original namespace. The new copy can be
-        # used for the new immutable class, while the original copy is going to
-        # be for the proxy class.
+        # used for the new programmable tuple class, while the original copy
+        # is going to be for the proxy class.
         new_nmspc = dict(nmspc)
 
         # Fields determination
@@ -46,12 +46,12 @@ class ImmutableClass(type):
         # Define the new method
         @functools.wraps(ProxyClass.__init__)
         def new_meth(cls, *args, **kwargs):
-            """Set a new object of the immutable class"""
+            """Set a new object of the programmable tuple class"""
 
             # Initialize the proxy by user initializer
             proxy = ProxyClass(*args, **kwargs)
 
-            # Make the actual immutable object from the proxy object
+            # Make the actual programmable tuple from the proxy object
             return tuple.__new__(
                 cls, (getattr(proxy, i, default_attr(i)) for i in fields)
                 )
@@ -99,7 +99,7 @@ class ImmutableClass(type):
 
         # Replace method
         def replace_meth(self, **kwargs):
-            """Simply replace a field in the object"""
+            """Simply replace a field in the programmable tuple"""
             result = tuple.__new__(
                 self.__class__,
                 map(kwargs.pop, fields, self)
@@ -212,15 +212,15 @@ def _determine_fields(bases, nmspc):
     # Fields that are still defining fields are going to be removed later.
     fields = set()
     for base in bases:
-        if isinstance(base, ImmutableClass):
+        if isinstance(base,ProgrammableTuple):
             fields.update(base.__fields__)
         else:
             raise TypeError(
                 'Type %s is not an immutable class' % base
                 )
     # The new data fields that is added for this class
-    if '__fields__' in nmspc:
-        fields.update(nmspc['__fields__'])
+    if '__data_fields__' in nmspc:
+        fields.update(nmspc['__data_fields__'])
 
     # Get all the defining fields
     try:
@@ -274,23 +274,24 @@ def _decorate_immutable_init(proxy_init):
 
     """Decorate the initialization function to be used for the immutable class
 
-    To facilitate the calling of the initialization function of the base class,
-    the initialization function is still put in the actual immutable class,
-    although its actual function is already moved into the new method. In order
-    to avoid it trying to taint the immutate object and causing error, this
-    function can be used for wrapping an proxy initialization function into an
-    function that can be safely set as the initializer for the immutable class
-    without problem.
+    To facilitate the calling of the initialization function of the base
+    class, the initialization function is still put in the actual immutable
+    class, although its actual function is already moved into the new method.
+    In order to avoid it trying to taint the programmable tuple and causing
+    error, this function can be used for wrapping an proxy initialization
+    function into an function that can be safely set as the initializer for
+    the immutable class without problem.
 
     :param proxy_init: The initializer for the proxy class
-    :returns: The decorated initializer that can be set for immutable classes
+    :returns: The decorated initializer that can be set for programmable tuple
+        classes
 
     """
 
     @functools.wraps(proxy_init)
     def decorared(self, *args, **kwargs):
         """The decorated initializer"""
-        if isinstance(self.__class__, ImmutableClass):
+        if isinstance(self.__class__, ProgrammableTuple):
             pass
         else:
             return proxy_init(self, *args, **kwargs)
@@ -300,22 +301,22 @@ def _decorate_immutable_init(proxy_init):
 
 def _generate_proxy_class(name, bases, orig_nmspc):
 
-    """Generate a initialize proxy class for the immutable class
+    """Generate a initialize proxy class for the programmable tuple
 
     The generated proxy class will have got all the behaviour of the new class
-    and itsbase classes. Just it is a regular mutable class. Its instances can
-    be used in the invocation of the initializer and act as the ``self``. Then
-    the actual defining and data fields can be read from the proxy and set in
-    the actual immutable class instance.
+    and its base classes. Just it is a regular mutable class. Its instances
+    can be used in the invocation of the initializer and act as the ``self``.
+    Then the actual defining and data fields can be read from the proxy and
+    set in the actual immutable class instance.
 
-    :param str name: The name of the new immutable class
-    :param tuple bases: The basis of the new immutable class
-    :param orig_nmspc: The name space dictionary of the immutable class before
-        any twicking by this metaclass.
+    :param str name: The name of the new named tuple class
+    :param tuple bases: The basis of the new named tuple class
+    :param orig_nmspc: The name space dictionary of the named tuple class
+        before any twicking by this metaclass.
 
     """
 
-    # The proxy class for each immutable class will be stored in the
+    # The proxy class for each named tuple class will be stored in the
     # __Proxy_Class__ attribute by convention.
     proxy_bases = tuple(i.__Proxy_Class__ for i in bases)
     ProxyClass = type(

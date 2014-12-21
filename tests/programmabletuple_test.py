@@ -1,16 +1,16 @@
 """
-Unit test for the immutable class
+Unit test for the programmable tuple metaclass
 """
 
 import unittest
 import collections
 
-from immutableclass import ImmutableClass
+from programmabletuple import ProgrammableTuple
 
 
 class ImmutableClassTest(unittest.TestCase):
 
-    """Test suite for the immutable class
+    """Test suite for the programmable tuple metaclass
 
     A toy person class will be set up, and various aspects of its behaviour
     tested. Also it is going to be subclassed for testing the inheritance.
@@ -19,7 +19,8 @@ class ImmutableClassTest(unittest.TestCase):
 
     def setUp(self):
 
-        class Person(metaclass=ImmutableClass, default_attr=lambda n: n):
+        class Person(metaclass=ProgrammableTuple,
+                     default_attr=lambda n: n):
 
             """A toy person class
 
@@ -28,7 +29,7 @@ class ImmutableClassTest(unittest.TestCase):
 
             """
 
-            __fields__ = [
+            __data_fields__ = [
                 'full_name',
                 'nothing',
                 ]
