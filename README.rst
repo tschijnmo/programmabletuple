@@ -1,3 +1,4 @@
+
 programmabletuple
 =================
 
@@ -7,15 +8,11 @@ defined classes
 .. image:: https://travis-ci.org/tschijnmo/programmabletuple.svg?branch=master
     :target: https://travis-ci.org/tschijnmo/programmabletuple
 
-This module provides a metaclass for making user-defined classes behave like
-named tuple while retaining the programmability of the classes. Its basic
-functionality is directly modelled after :py:cls:`collections.namedtuple`, but
-it offers more object-orientation and programmability. Basically, here
-instances of programmable tuples are frozen once they are initialized, like
-the normal named tuple. Any attempt to mutate the state of the instance will
-cause an error. Except for this they are designed to behave as similar to the
-instances of the plain mutable classes as possible, including their
-programmability.
+In essence, the programmable tuple metaclass in this module is able to make
+user-defined classes in Python has got the immutability of named tuple while
+retaining the programmability of user-defined classes. Merely minimal change
+to the code for class definition is needed, and a lot feature from class
+definition, like Methods and inheritance, are supported.
 
 The basic motivation for this is to make code more secure and less error-
 prone. Frequently in Python code, we have got structures (any structure)
@@ -31,9 +28,9 @@ almost definitely be mutated, this cost is necessary. But for cases where the
 objects are unlikely to be mutated in the majority of cases, the copying might
 cease to be an economical choice. So the basic idea of this metaclass is that
 we could have a means to enforce the references to be pointing the the same
-value, and we can still make new instances out of the old ones if they really
-need to be mutated. It can be construed as an attempt to make Python more
-functional while maintaining its object-orientated aspect. The resulted
+value, while we can still make new instances out of the old ones if they
+really need to be mutated. It can be construed as an attempt to make Python
+more functional while maintaining its object-orientated aspect. The resulted
 programmable tuple resembles a hybrid of the Haskell record and the user-
 defined class in Python.
 
@@ -43,18 +40,21 @@ Basic usage
 Fields
 ^^^^^^
 
-Since all the information about instances of an immutable class needs to be
-given to the initializer, the arguments of the initializer uniquely define
-values of the immutable class. Hence they are called the defining fields of
-the class. Besides the defining fields, additional fields can be added to the
-class instances to hold some other essential data. These fields are going to
-be termed the data fields. This can be achieved by assigning a list of names
-to the ``__data_fields__`` attribute of the class, in the same way as the
-``__slots__`` attribute is used. And the actual value for the data fields can
-be set in the initializer in the same way as normal. For example, to define an
-programmable tuple for people to store their first and last name, and we would
-like the instances to carry the full name with comma separation for
-alphabetization, we can just define
+The programmable tuple is directly modelled after the named tuple class in the
+standard library. So unlike plain user-defined classes, the instances could
+only have a set of pre-defined fields for each class. Since instances cannot
+be changed after the initialization, all the information about instances of an
+immutable class needs to be given to the initializer. So the arguments of the
+initializer uniquely define values of the programmable tuple. Hence they are
+called the defining fields of the class. Besides the defining fields,
+additional fields can be added to the class instances to hold some other
+essential data. These fields are going to be termed the data fields. This can
+be achieved by assigning a list of names to the ``__data_fields__`` attribute
+of the class, in the same way as the ``__slots__`` attribute is used. And the
+actual value for the data fields can be set in the initializer in the same way
+as normal. For example, to define an programmable tuple for people to store
+their first and last name, and we would like the instances to carry the full
+name with comma separation for alphabetization, we can just define
 
 .. code:: python
 
@@ -73,17 +73,17 @@ attributes private.
 Methods
 ^^^^^^^
 
-Methods can also be defined for immutable classes with exactly the same syntax
-as the normal mutable class. Just here the only place where ``self`` could be
-mutated is in the ``__init__`` method, any attempt to mutate ``self`` would
-cause an error in any other method. So the methods here should be ones that
-concentrates more on the return value rather than mutating the state of the
-object. Due to this apparent deviation from the classical Smalltalk-style
-object-orientated programming, the methods could be clearly defined outside the
-class as a normal function, and then then we can forward them into the class
-for convenience. For instance, if we have got a class for symbolic mathematical
-expressions and a function to compute the derivative with respect to a symbol,
-we could do
+Methods can also be defined for programmable tuples with exactly the same
+syntax as the normal user-defined classes. Just here the only place where
+``self`` could be mutated is in the ``__init__`` method, any attempt to mutate
+``self`` would cause an error in any other method. So the methods here should
+be ones that concentrates more on the return value rather than mutating the
+state of the object. Due to this apparent deviation from the classical
+Smalltalk-style object-orientated programming, the methods normally could be
+clearly defined outside the class as a normal function, and then then we can
+forward them into the class for convenience. For instance, if we have got a
+class for symbolic mathematical expressions and a function to compute the
+derivative with respect to a symbol, we could do
 
 .. code:: python
 
@@ -107,10 +107,10 @@ Non-destructive update
 
 Frequently we need values of user-defined class that is different from an
 existing value by relatively small amount. With mutable class, frequently this
-is achieved by mutating the instance. However, here the instances are no longer
-mutable. So methods to update instances non-destructively are provided. Note
-that these methods will return new instances with the field updated and leave
-the original value intact.
+is achieved by mutating the instance. However, here the instances are no
+longer mutable. So methods to update instances non-destructively are provided.
+Note that these methods will return new instances with the field updated and
+leave the original value intact, in the same way as the Haskell records works.
 
 Basically two methods are provided for this purpose, ``_update`` and
 ``_replace``. Both of them takes keyword arguments with the keys being the name
