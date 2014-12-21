@@ -1,5 +1,12 @@
 """
 Definition of a metaclass for making named tuple with programmability
+
+The basic idea of the implementation is that for each programmable tuple class,
+a proxy class is generated that imitates its behaviour as much as possible. The
+objects of this proxy class is going to be used for the initializer, then the
+values for the various fields are read and set into the actual programmable
+tuple.
+
 """
 
 import functools
@@ -14,7 +21,7 @@ import collections
 
 class ProgrammableTuple(type):
 
-    """Immutable class metaclass derived from tuple"""
+    """Programmable tuple metaclass"""
 
     def __new__(mcs, name, bases, nmspc, default_attr=lambda _: None):
 
@@ -47,10 +54,8 @@ class ProgrammableTuple(type):
         @functools.wraps(ProxyClass.__init__)
         def new_meth(cls, *args, **kwargs):
             """Set a new object of the programmable tuple class"""
-
             # Initialize the proxy by user initializer
             proxy = ProxyClass(*args, **kwargs)
-
             # Make the actual programmable tuple from the proxy object
             return tuple.__new__(
                 cls, (getattr(proxy, i, default_attr(i)) for i in fields)
@@ -212,8 +217,10 @@ def _determine_fields(bases, nmspc):
     # Fields that are still defining fields are going to be removed later.
     fields = set()
     for base in bases:
-        if isinstance(base,ProgrammableTuple):
+        if isinstance(base, ProgrammableTuple):
             fields.update(base.__fields__)
+        elif base == object:
+            continue
         else:
             raise TypeError(
                 'Type %s is not an immutable class' % base
