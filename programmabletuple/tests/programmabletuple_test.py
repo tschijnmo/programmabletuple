@@ -163,3 +163,20 @@ class ImmutableClassTest(unittest.TestCase):
             self.assertEqual(len(i), 3)
         for i in [plain_full_dict, ordered_full_dict]:
             self.assertEqual(i['full_name'], 'Smith, John')
+
+    def test_eq(self):
+        """Tests the value-based equality testing"""
+
+        jsmith2 = self.Person('John', 'Smith', 49)
+        self.assertEqual(self.jsmith, jsmith2)
+
+    def test_invalid_init(self):
+        """Tests the error reporting for invalid initializer"""
+
+        class A(metaclass=ProgrammableTuple):
+            """Dummy class"""
+            def __init__(self, aa):
+                """An invalid initializer"""
+                self.ab = aa
+
+        self.assertRaises(ValueError, A, (10, ))

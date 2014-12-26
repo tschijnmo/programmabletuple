@@ -57,8 +57,16 @@ class ProgrammableTuple(type):
             # Initialize the proxy by user initializer
             proxy = ProxyClass(*args, **kwargs)
             # Make the actual programmable tuple from the proxy object
+            values = []
+            proxy_dict = dict(proxy.__dict__)
+            for i in fields:
+                values.append(
+                    proxy_dict.pop(i, default_attr(i))
+                    )
+            if len(proxy_dict) != 0:
+                raise ValueError('Invalid attributes %r' % proxy_dict.keys())
             return tuple.__new__(
-                cls, (getattr(proxy, i, default_attr(i)) for i in fields)
+                cls, values
                 )
 
         # Register the new method
