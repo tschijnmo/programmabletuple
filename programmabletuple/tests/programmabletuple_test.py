@@ -180,3 +180,17 @@ class ImmutableClassTest(unittest.TestCase):
                 self.ab = aa
 
         self.assertRaises(ValueError, A, (10, ))
+
+    def test_no_auto_defining(self):
+        """Tests the turning off of the auto defining fields assignment"""
+
+        class A(metaclass=ProgrammableTuple, auto_defining=False,
+                default_attr=lambda x: x):
+            """Dummy class"""
+            def __init__(self, aa, bb):
+                """Set aa but not bb"""
+                self.aa = aa
+
+        a = A(10, 11)
+        self.assertEqual(a.aa, 10)
+        self.assertEqual(a.bb, 'bb')

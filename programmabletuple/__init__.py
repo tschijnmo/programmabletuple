@@ -23,7 +23,8 @@ class ProgrammableTuple(type):
 
     """Programmable tuple metaclass"""
 
-    def __new__(mcs, name, bases, nmspc, default_attr=lambda _: None):
+    def __new__(mcs, name, bases, nmspc,
+                auto_defining=True, default_attr=lambda _: None):
 
         """Generates a new type instance for the programmable tuple class"""
 
@@ -46,7 +47,7 @@ class ProgrammableTuple(type):
 
         # Prepare the proxy class in initialization function
         ProxyClass = _generate_proxy_class(
-            name, bases, nmspc
+            name, bases, nmspc, auto_defining
             )
         new_nmspc['__Proxy_Class__'] = ProxyClass
 
@@ -314,7 +315,7 @@ def _decorate_immutable_init(proxy_init):
     return decorared
 
 
-def _generate_proxy_class(name, bases, orig_nmspc):
+def _generate_proxy_class(name, bases, orig_nmspc, auto_defining):
 
     """Generate a initialize proxy class for the programmable tuple
 
@@ -328,6 +329,8 @@ def _generate_proxy_class(name, bases, orig_nmspc):
     :param tuple bases: The basis of the new named tuple class
     :param orig_nmspc: The name space dictionary of the named tuple class
         before any twicking by this metaclass.
+    :param auto_defining: If the defining attributes are going to be
+        automatically assigned.
 
     """
 
@@ -341,7 +344,8 @@ def _generate_proxy_class(name, bases, orig_nmspc):
         )
 
     # Decorated initializer will set all the defining fields
-    proxy_init_meth = _decorate_proxy_init(
+    init_dec = _decorate_proxy_init if auto_defining else lambda x: x
+    proxy_init_meth = init_dec(
         getattr(ProxyClass, '__init__')
         )
     setattr(ProxyClass, '__init__', proxy_init_meth)

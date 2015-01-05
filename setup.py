@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name='programmabletuple',
-      version='0.3.0',
+      version='0.4.0',
       description='Python metaclass for making named tuples with programmability',
       long_description=open('README.rst').read(),
       author='Tschijnmo TSCHAU',
