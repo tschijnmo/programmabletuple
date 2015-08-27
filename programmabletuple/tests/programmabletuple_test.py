@@ -2,195 +2,245 @@
 Unit test for the programmable tuple metaclass
 """
 
-import unittest
-import collections
 
-from programmabletuple import ProgrammableTuple
+import unittest
+import itertools
+
+from programmabletuple import ProgrammableTuple, ProgrammableExpr
+
+
+#
+# The programmable tuples class definition
+# ========================================
+#
+# Some utility functions
+# ----------------------
+#
+
+
+def _get_full_name(first_name, last_name):
+    return ', '.join([last_name, first_name])
+
+
+def _get_sui(self):
+    """Gets the age in conventional Asian way
+
+    Here the new borns starts at one year old.
+    """
+    return self.age + 1
+
+
+#
+# The actual classes
+# ------------------
+#
+
+
+class PersonPT(ProgrammableTuple, auto_defining=True):
+
+    """A toy person class
+
+    It just has three simple fields, first name, last name, and age,
+    the full name is also given in a data field.
+
+    The defining fields are going to be assigned automatically.
+
+    """
+
+    __data_fields__ = [
+        'full_name',
+    ]
+
+    def __init__(self, first_name, last_name, age):
+        """Initialize a person
+
+        The full name will be set as well.
+        """
+        self.full_name = _get_full_name(first_name, last_name)
+
+    sui = property(_get_sui)
+
+
+class PersonPE(ProgrammableExpr):
+
+    """A toy person class as programmable expression
+
+    It is just like the above class. Just the defining fields are going to be
+    assigned manually and it is not a tuple subclass.
+
+    """
+
+    __data_fields__ = [
+        'full_name',
+    ]
+
+    def __init__(self, first_name, last_name, age):
+        """Initialize a person
+
+        The full name will be set as well.
+        """
+        self.first_name = first_name
+        self.last_name = last_name
+        self.age = age
+        self.full_name = _get_full_name(first_name, last_name)
+
+    sui = property(_get_sui)
+
+
+
+#
+# Subclass definition
+# ===================
+#
+
+
+class JohnsonsPT(PersonPT):
+
+    """Members of the Johnson family"""
+
+    def __init__(self, first_name, age):
+        self.super().__init__(first_name, 'Johnson', age)
+
+    def is_johnsons(self):
+        return True
+
+
+class JohnsonsPE(PersonPE):
+
+    """Members of the Johnson family"""
+
+    def __init__(self, first_name, age):
+        self.super().__init__(first_name, 'Johnson', age)
+
+    def is_johnsons(self):
+        return True
+
+
+#
+# The tests
+# =========
+#
 
 
 class ImmutableClassTest(unittest.TestCase):
 
-    """Test suite for the programmable tuple metaclass
-
-    A toy person class will be set up, and various aspects of its behaviour
-    tested. Also it is going to be subclassed for testing the inheritance.
-
-    """
+    """Test suite for the programmable tuple metaclass"""
 
     def setUp(self):
 
-        class Person(metaclass=ProgrammableTuple,
-                     default_attr=lambda n: n):
-
-            """A toy person class
-
-            It just has three simple fields, first name, last name, and age,
-            the full name is also given in a data field.
-
-            """
-
-            __data_fields__ = [
-                'full_name',
-                'nothing',
-                ]
-
-            def __init__(self, first_name, last_name, age):
-
-                """Initialize a person
-
-                The full name will be set as well.
-
-                """
-
-                self.full_name = ', '.join([last_name, first_name])
-
-            def get_sui(self):
-
-                """Get the age in conventional Asian way
-
-                Here the new borns starts at one year old.
-
-                """
-
-                return self.age + 1
-
-        self.Person = Person
-        self.jsmith = Person('John', 'Smith', 49)
+        self.jsmith_pt = PersonPT('John', 'Smith', 49)
+        self.jsmith_pe = PersonPE('John', 'Smith', 49)
+        self.jsmiths = [self.jsmith_pt, self.jsmith_pe]
+        self.ajohnson_pt = JohnsonsPT('Andy', 8)
+        self.ajohnson_pe = JohnsonsPE('Andy', 8)
 
     def test_access(self):
-
         """Tests the access of the fields of the person"""
 
-        jsmith = self.jsmith
-        self.assertEqual(jsmith.first_name, 'John')
-        self.assertEqual(jsmith.last_name, 'Smith')
-        self.assertEqual(jsmith.age, 49)
-        self.assertEqual(jsmith.full_name, 'Smith, John')
+        for jsmith in self.jsmiths:
+            self.assertEqual(jsmith.first_name, 'John')
+            self.assertEqual(jsmith.last_name, 'Smith')
+            self.assertEqual(jsmith.age, 49)
+            self.assertEqual(jsmith.full_name, 'Smith, John')
 
     def test_method(self):
-
         """Tests if the method defined in the class can be called"""
 
-        self.assertEqual(self.jsmith.get_sui(), 50)
+        for jsmith in self.jsmiths:
+            self.assertEqual(jsmith.sui, 50)
 
     def test_inmutability(self):
 
         """Tests if the attributes are really not mutable"""
 
-        def mutate():
-            self.jsmith.age = 15
-        self.assertRaises(AttributeError, mutate)
+        def mutate_pt():
+            self.jsmith_pt.age = 15
+        def mutate_pe():
+            self.jsmith_pe.age = 15
+
+        self.assertRaises(AttributeError, mutate_pt)
+        self.assertRaises(AttributeError, mutate_pe)
 
     def test_update(self):
-
         """Tests updating a defining attribute"""
 
-        doug = self.jsmith._update(first_name='Doug')
-        self.assertEqual(doug.first_name, 'Doug')
-        self.assertEqual(doug.last_name, 'Smith')
-        self.assertEqual(doug.full_name, 'Smith, Doug')
-        self.assertEqual(doug.age, 49)
+        for jsmith in self.jsmiths:
+            doug = jsmith._update(first_name='Doug')
+            self.assertEqual(doug.first_name, 'Doug')
+            self.assertEqual(doug.last_name, 'Smith')
+            self.assertEqual(doug.full_name, 'Smith, Doug')
+            self.assertEqual(doug.age, 49)
 
     def test_replace(self):
-
         """Tests forced replacement of an attribute"""
 
-        doug_incons = self.jsmith._replace(first_name='Doug')
-        self.assertEqual(doug_incons.first_name, 'Doug')
-        self.assertEqual(doug_incons.last_name, 'Smith')
-        self.assertEqual(doug_incons.full_name, 'Smith, John')
-
-    def test_default_attr(self):
-
-        """Tests if the default attribute is assigned as requested"""
-
-        self.assertEqual(self.jsmith.nothing, 'nothing')
+        for jsmith in self.jsmiths:
+            doug_inconsistent = jsmith._replace(first_name='Doug')
+            self.assertEqual(doug_inconsistent.first_name, 'Doug')
+            self.assertEqual(doug_inconsistent.last_name, 'Smith')
+            self.assertEqual(doug_inconsistent.full_name, 'Smith, John')
 
     def test_subclassing(self):
-
         """Tests if the subclassing is working properly"""
 
-        class Johnsons(self.Person):
-
-            """Members of the Johnson family"""
-
-            def __init__(self, first_name, age):
-                self.super().__init__(first_name, 'Johnson', age)
-
-            def is_johnsons(self):
-                return True
-
-        andy = Johnsons('Andy', 8)
-
-        self.assertEqual(andy.first_name, 'Andy')
-        self.assertEqual(andy.last_name, 'Johnson')
-        self.assertEqual(andy.age, 8)
-        self.assertEqual(andy.get_sui(), 9)
-        self.assertEqual(andy.full_name, 'Johnson, Andy')
-        self.assertTrue(andy.is_johnsons())
+        for andy in [self.ajohnson_pt, self.ajohnson_pe]:
+            self.assertEqual(andy.first_name, 'Andy')
+            self.assertEqual(andy.last_name, 'Johnson')
+            self.assertEqual(andy.age, 8)
+            self.assertEqual(andy.sui, 9)
+            self.assertEqual(andy.full_name, 'Johnson, Andy')
+            self.assertTrue(andy.is_johnsons())
 
     def test_hashing(self):
+        """Tests the correctness of hashing and equality testing"""
 
-        """Tests the correctness of hashing"""
+        equal_ones = []  # Each entry is a list of equal ones. Different
+                         # entries are not equal.
+        for i in self.jsmiths:
+            equal_ones.append([
+                i, type(i)('John', 'Smith', 49)
+            ])
+            equal_ones.append([type(i)('John', 'Smith', 3)])
 
-        jsmith2 = self.Person('John', 'Smith', 49)
-        young = self.Person('John', 'Smith', 3)
+        for i, v in enumerate(equal_ones):
 
-        self.assertEqual(hash(self.jsmith), hash(jsmith2))
-        self.assertNotEqual(hash(self.jsmith), hash(young))
+            # Assert that each pair within the chunk are equal and the same
+            # hash.
+            for j, k in itertools.combinations(v, 2):
+                self.assertEqual(hash(j), hash(k))
+                self.assertEqual(j, k)
+                continue
+
+            # Assert than each member of the chunk is not equal and has
+            # different hash with anything else.
+            for j in v:
+                for k in itertools.chain.from_iterable(equal_ones[i + 1:]):
+                    self.assertNotEqual(hash(j), hash(k))
+                    self.assertNotEqual(j, k)
+                    continue
+                continue
+
+            # Continue to the next chunk.
+            continue
 
     def test_asdict(self):
+        """Tests the asdict methods
 
-        """Tests the asdict methods"""
+        Here only the naive encoding and decoding are tested, not the
+        complicated recursive cases.
+        """
 
-        plain_def_dict = self.jsmith._asdict()
-        plain_full_dict = self.jsmith._asdict(full=True)
-        ordered_def_dict = self.jsmith._asdict(ordered=True)
-        ordered_full_dict = self.jsmith._asdict(full=True, ordered=True)
+        for jsmith in self.jsmiths:
 
-        for i in [plain_def_dict, plain_full_dict,
-                  ordered_full_dict, ordered_full_dict]:
-            self.assertEqual(i['first_name'], 'John')
-            self.assertEqual(i['last_name'], 'Smith')
-            self.assertEqual(i['age'], 49)
+            plain_def_dict = jsmith._asdict()
+            plain_full_dict = jsmith._asdict(full=True)
 
-        for i in [plain_def_dict, plain_full_dict]:
-            self.assertEqual(plain_def_dict.__class__, dict)
-        for i in [ordered_def_dict, ordered_full_dict]:
-            self.assertEqual(i.__class__, collections.OrderedDict)
+            for i in [plain_def_dict, plain_full_dict]:
+                self.assertEqual(i['first_name'], 'John')
+                self.assertEqual(i['last_name'], 'Smith')
+                self.assertEqual(i['age'], 49)
 
-        for i in [plain_def_dict, ordered_def_dict]:
-            self.assertEqual(len(i), 3)
-        for i in [plain_full_dict, ordered_full_dict]:
-            self.assertEqual(i['full_name'], 'Smith, John')
+            self.assertEqual(len(plain_def_dict), 3)
 
-    def test_eq(self):
-        """Tests the value-based equality testing"""
-
-        jsmith2 = self.Person('John', 'Smith', 49)
-        self.assertEqual(self.jsmith, jsmith2)
-
-    def test_invalid_init(self):
-        """Tests the error reporting for invalid initializer"""
-
-        class A(metaclass=ProgrammableTuple):
-            """Dummy class"""
-            def __init__(self, aa):
-                """An invalid initializer"""
-                self.ab = aa
-
-        self.assertRaises(ValueError, A, (10, ))
-
-    def test_no_auto_defining(self):
-        """Tests the turning off of the auto defining fields assignment"""
-
-        class A(metaclass=ProgrammableTuple, auto_defining=False,
-                default_attr=lambda x: x):
-            """Dummy class"""
-            def __init__(self, aa, bb):
-                """Set aa but not bb"""
-                self.aa = aa
-
-        a = A(10, 11)
-        self.assertEqual(a.aa, 10)
-        self.assertEqual(a.bb, 'bb')
+            self.assertEqual(plain_full_dict['full_name'], 'Smith, John')
+            self.assertEqual(len(plain_full_dict), 4)
