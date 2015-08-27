@@ -231,6 +231,20 @@ class ImmutableClassTest(unittest.TestCase):
             self.assertEqual(doug_inconsistent.last_name, 'Smith')
             self.assertEqual(doug_inconsistent.full_name, 'Smith, John')
 
+    def test_formating(self):
+        """Tests the formatting as repr and str"""
+
+        # We need to test all combinations, repr and str, with PT and PE.
+        repr_args = "(first_name='John', last_name='Smith', age=49)"
+        str_args = "(first_name=John, last_name=Smith, age=49)"
+
+        for head, person in [
+            ('PersonPT', self.jsmith_pt), ('PersonPE', self.jsmith_pe)
+        ]:
+            self.assertEqual(repr(person), head + repr_args)
+            self.assertEqual(str(person), head + str_args)
+            continue
+
     def test_asdict(self):
         """Tests the asdict methods
 
