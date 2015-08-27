@@ -19,6 +19,7 @@ from programmabletuple import ProgrammableTuple, ProgrammableExpr
 
 
 def _get_full_name(first_name, last_name):
+    """Gets the full name"""
     return ', '.join([last_name, first_name])
 
 
@@ -134,6 +135,10 @@ class ImmutableClassTest(unittest.TestCase):
         self.ajohnson_pt = JohnsonsPT('Andy', 8)
         self.ajohnson_pe = JohnsonsPE('Andy', 8)
 
+    #
+    # Tests of the essential behaviour of programmable tuples
+    #
+
     def test_access(self):
         """Tests the access of the fields of the person"""
 
@@ -149,8 +154,7 @@ class ImmutableClassTest(unittest.TestCase):
         for jsmith in self.jsmiths:
             self.assertEqual(jsmith.sui, 50)
 
-    def test_inmutability(self):
-
+    def test_immutability(self):
         """Tests if the attributes are really not mutable"""
 
         def mutate_pt():
@@ -160,25 +164,6 @@ class ImmutableClassTest(unittest.TestCase):
 
         self.assertRaises(AttributeError, mutate_pt)
         self.assertRaises(AttributeError, mutate_pe)
-
-    def test_update(self):
-        """Tests updating a defining attribute"""
-
-        for jsmith in self.jsmiths:
-            doug = jsmith._update(first_name='Doug')
-            self.assertEqual(doug.first_name, 'Doug')
-            self.assertEqual(doug.last_name, 'Smith')
-            self.assertEqual(doug.full_name, 'Smith, Doug')
-            self.assertEqual(doug.age, 49)
-
-    def test_replace(self):
-        """Tests forced replacement of an attribute"""
-
-        for jsmith in self.jsmiths:
-            doug_inconsistent = jsmith._replace(first_name='Doug')
-            self.assertEqual(doug_inconsistent.first_name, 'Doug')
-            self.assertEqual(doug_inconsistent.last_name, 'Smith')
-            self.assertEqual(doug_inconsistent.full_name, 'Smith, John')
 
     def test_subclassing(self):
         """Tests if the subclassing is working properly"""
@@ -195,7 +180,7 @@ class ImmutableClassTest(unittest.TestCase):
         """Tests the correctness of hashing and equality testing"""
 
         equal_ones = []  # Each entry is a list of equal ones. Different
-                         # entries are not equal.
+        # entries are not equal.
         for i in self.jsmiths:
             equal_ones.append([
                 i, type(i)('John', 'Smith', 49)
@@ -222,6 +207,29 @@ class ImmutableClassTest(unittest.TestCase):
 
             # Continue to the next chunk.
             continue
+
+    #
+    # Tests of the utilities in the mixin class
+    #
+
+    def test_update(self):
+        """Tests updating a defining attribute"""
+
+        for jsmith in self.jsmiths:
+            doug = jsmith._update(first_name='Doug')
+            self.assertEqual(doug.first_name, 'Doug')
+            self.assertEqual(doug.last_name, 'Smith')
+            self.assertEqual(doug.full_name, 'Smith, Doug')
+            self.assertEqual(doug.age, 49)
+
+    def test_replace(self):
+        """Tests forced replacement of an attribute"""
+
+        for jsmith in self.jsmiths:
+            doug_inconsistent = jsmith._replace(first_name='Doug')
+            self.assertEqual(doug_inconsistent.first_name, 'Doug')
+            self.assertEqual(doug_inconsistent.last_name, 'Smith')
+            self.assertEqual(doug_inconsistent.full_name, 'Smith, John')
 
     def test_asdict(self):
         """Tests the asdict methods

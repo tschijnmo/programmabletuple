@@ -333,7 +333,7 @@ class _UtilMethodsMixin(object):
     __slots__ = []  # Disable dict.
 
     #
-    # Attribute getting
+    # Attribute access
     #
 
     def __getattr__(self, attr):
@@ -344,6 +344,45 @@ class _UtilMethodsMixin(object):
             raise KeyError(
                 'Invalid attribute {}'.format(attr)
             )
+
+    def __setattr__(self, attr, value):
+        """Raises Attribute Error for attempts to mutate"""
+        if attr == '__content__':
+            super().__setattr__(attr, value)
+        else:
+            raise AttributeError(
+                'Cannot mutate attributes of programmable tuples'
+            )
+
+    #
+    # Hashing and equality testing
+    #
+
+    def __hash__(self):
+        """The default hash
+
+        The tuple of the class and the defining fields values are going to be
+        hashed.
+        """
+
+        return hash(
+            (self.__class__, ) + self._defining_values
+        )
+
+    def __eq__(self, other):
+        """Equality comparison
+
+        Two programmable tuple objects are considered equal when
+
+        1. They are of the same class.
+        2. All of their defining fields have equal values.
+
+        """
+
+        return (
+            self.__class__ == other.__class__ and
+            self._defining_values == other._defining_values
+        )
 
     #
     # Generation of objects of the same type
@@ -608,49 +647,6 @@ class _UtilMethodsMixin(object):
     # Disable the getting and setting of states for pickling.
     __getstate__ = lambda _: False
     __setstate__ = lambda _, state_: False
-
-    #
-    # Hashing and equality testing
-    #
-
-    def __hash__(self):
-        """The default hash
-
-        The tuple of the class and the defining fields values are going to be
-        hashed.
-        """
-
-        return hash(
-            (self.__class__, ) + self._defining_values
-        )
-
-    def __eq__(self, other):
-        """Equality comparison
-
-        Two programmable tuple objects are considered equal when
-
-        1. They are of the same class.
-        2. All of their defining fields have equal values.
-
-        """
-
-        return (
-            self.__class__ == other.__class__ and
-            self._defining_values == other._defining_values
-        )
-
-    #
-    # Miscellaneous methods
-    #
-
-    def __setattr__(self, attr, value):
-        """Raises Attribute Error for attempts to mutate"""
-        if attr == '__content__':
-            super().__setattr__(attr, value)
-        else:
-            raise AttributeError(
-                'Cannot mutate attributes of programmable tuples'
-            )
 
     #
     # Utility methods
