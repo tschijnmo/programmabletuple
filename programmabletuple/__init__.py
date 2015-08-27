@@ -55,6 +55,15 @@ class ProgrammableTupleMeta(type):
         new_nmspc['__new__'] = _form_new_method(proxy_class)
         new_nmspc['__init__'] = _disable_init(proxy_class.__init__)
 
+        # Set empty slots for tuple subclasses, since all the information is
+        # going to be handled by the tuple. Or we need a slot for the actual
+        # content.
+        if any(issubclass(i, tuple) for i in bases):
+            slots = []
+        else:
+            slots = ['__content__']
+        new_nmspc['__slots__'] = slots
+
         # Initialize the programmable tuple class.
         cls = type.__new__(mcs, name, bases, new_nmspc)
 
@@ -309,6 +318,8 @@ class _UtilMethodsMixin(object):
     provide the utilities.
 
     """
+
+    __slots__ = []  # Disable dict.
 
     #
     # Attribute getting
@@ -675,7 +686,14 @@ class ProgrammableTuple(
 
     """
 
-    pass
+    @property
+    def __content__(self):
+        """Return the content tuple
+
+        This is to make the content tuple of both subclass of tuple and
+        non-subclass of tuple able to be retrieved in a uniform fashion.
+        """
+        return self
 
 
 class ProgrammableExpr(_UtilMethodsMixin, metaclass=ProgrammableTupleMeta):
