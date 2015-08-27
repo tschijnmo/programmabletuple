@@ -499,11 +499,11 @@ class _UtilMethodsMixin(object):
 
     def __repr__(self, include_fn=True):
         """Returns the formatted string able to be evaluated"""
-        return self._format(children_fmt='{val:r}', include_fn=include_fn)
+        return self._format(children_fmt='{val!r}', include_fn=include_fn)
 
     def __str__(self, include_fn=True):
         """Returns a nicely formatted string"""
-        return self._format(children_fmt='{val:s}', include_fn=include_fn)
+        return self._format(children_fmt='{val!s}', include_fn=include_fn)
 
     #
     # Dictionary forming and parsing
@@ -686,7 +686,7 @@ class _UtilMethodsMixin(object):
 
 
 class ProgrammableTuple(
-    tuple, _UtilMethodsMixin, metaclass=ProgrammableTupleMeta
+    _UtilMethodsMixin, tuple, metaclass=ProgrammableTupleMeta
 ):
     """The programmable tuple base class
 
