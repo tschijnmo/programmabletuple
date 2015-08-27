@@ -53,7 +53,7 @@ class ProgrammableTupleMeta(type):
 
         # Patch the initialization methods.
         new_nmspc['__new__'] = _form_new_method(proxy_class)
-        new_nmspc['__init__'] = _disable_init(proxy_class.__init__)
+        new_nmspc['__init__'] = _form_init_method(proxy_class.__init__)
 
         # Set empty slots for tuple subclasses, since all the information is
         # going to be handled by the tuple. Or we need a slot for the actual
@@ -260,21 +260,32 @@ def _form_new_method(proxy_class):
     return new_meth
 
 
-def _disable_init(proxy_init):
-    """Forms the disabled version of the user-given initialization function
+def _form_init_method(proxy_init):
+    """Decorate the user-given initialization function
 
     Although the actual actions of the user-given initializer is moved to the
     initialization of the proxy object, we would still like to see the
-    docstring for the initializer during development. So this function could
-    decorate the given initializer into a disabled version that carries the
-    information but actually does nothing.
+    docstring for the initializer during development.
+
+    More importantly, since the default Python ``super`` is slightly awkward
+    to use inside the initializer, we want to be able to call the initializer
+    of super class directly. So this function could decorate the given
+    initializer into a version that is automatically disabled when called on
+    a programmable tuple object.
+
     """
 
     @functools.wraps(proxy_init)
-    def decorared(*_, **kwargs_):
+    def decorared(self, *args, **kwargs):
         """The decorated initializer"""
-        _ = kwargs_  # Just for the stupid linter.
-        pass
+        if isinstance(type(self), ProgrammableTupleMeta):
+            # When it is automatically called after the creation of a
+            # programmable tuple, do nothing.
+            pass
+        else:
+            # When it is probably called explicitly by a subclass
+            # initializer, do the action.
+            proxy_init(self, *args, **kwargs)
 
     return decorared
 
