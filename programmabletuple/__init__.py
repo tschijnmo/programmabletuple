@@ -55,10 +55,6 @@ class ProgrammableTupleMeta(type):
         new_nmspc['__new__'] = _form_new_method(proxy_class)
         new_nmspc['__init__'] = _disable_init(proxy_class.__init__)
 
-        # Patch the __slots__ attribute to make it less mutable and save the
-        # __dict__.
-        new_nmspc['__slots__'] = '__content__'
-
         # Initialize the programmable tuple class.
         cls = type.__new__(mcs, name, bases, new_nmspc)
 
@@ -313,8 +309,6 @@ class _UtilMethodsMixin(object):
     provide the utilities.
 
     """
-
-    __slots__ = []  # Disable __dict__.
 
     #
     # Attribute getting
