@@ -283,7 +283,7 @@ def _gen_programmable_tuple_bases(raw_bases):
 
     for base in raw_bases:
         if isinstance(base, ProgrammableTupleMeta):
-            if base is ProgrammableTuple or base is ImmutableClass:
+            if base is ProgrammableTuple or base is ProgrammableExpr:
                 continue
             else:
                 yield base
@@ -688,12 +688,15 @@ class ProgrammableTuple(
     pass
 
 
-class ImmutableClass(_ProgrammableTupleBase):
-    """The immutable class base class
+class ProgrammableExpr(_ProgrammableTupleBase):
+    """The programmable expression base class
 
     This base class is similar to the :py:class:`ProgrammableTuple` class,
     just it is not a subclass of tuple. So it can be used when the desired
-    data structure is not intended to behave like a tuple.
+    data structure is not intended to behave like a tuple. The resulted class
+    looks like expressions in the Wolfram language but with object-oriented
+    programmability added.
+
 
     """
 
