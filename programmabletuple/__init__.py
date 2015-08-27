@@ -32,8 +32,8 @@ class ProgrammableTupleMeta(type):
     the various fields are read from this proxy object and set into the
     actual programmable tuple. In this meta-class, the core functionality of
     defining the proxy class and wrapping the user-defined init function is
-    performed. The definition of utility methods are in the base class
-    :py:class:`_ProgrammableTupleBase` definition.
+    performed. The definition of utility methods are in the mixin class
+    :py:class:`_UtilMethodsMixin` definition.
 
     """
 
@@ -277,21 +277,15 @@ def _get_argnames(func):
 def _gen_programmable_tuple_bases(raw_bases):
     """Generates the programmable tuple bases
 
-    The programmable tuple bases which are not the abstract base will be
-    yielded one-by-one. Any base that is not of programmable tuple type will
-    cause exception. Programmable tuple can only derive from programmable
-    tuples.
+    For subclassing programmable tuples, we need to read some information
+    from only the bases which are programmable tuples themselves. This
+    function will filter only the programmable tuple subclasses to read the
+    information.
     """
 
     for base in raw_bases:
         if isinstance(base, ProgrammableTupleMeta):
             yield base
-        elif base is tuple:
-            continue
-        else:
-            raise TypeError(
-                'Type {} is not programmable tuple'.format(base)
-            )
         continue
 
     return None
@@ -306,20 +300,21 @@ def _gen_programmable_tuple_bases(raw_bases):
 #
 
 
-class _ProgrammableTupleBase(metaclass=ProgrammableTupleMeta):
+class _UtilMethodsMixin(object):
 
     """
-    The programmable tuple base class
+    Mixin class for utility methods of programmable tuple base classes
 
-    This class will be of meta-type :py:class:`ProgrammableTupleMeta`,
-    and will define utility methods for working with programmable tuples.
-    Most of the utility methods directly parallels those for the
+    This class will define utility methods for working with programmable
+    tuples. Most of the utility methods directly parallels those for the
     ``namedtuple`` class.
 
     This class is going to be mixed in into the two public base classes to
     provide the utilities.
 
     """
+
+    __slots__ = []  # Disable __dict__.
 
     #
     # Attribute getting
@@ -488,7 +483,7 @@ class _ProgrammableTupleBase(metaclass=ProgrammableTupleMeta):
         dict_ = {}
         for fn in included_fields:
             val = getattr(self, fn)
-            if isinstance(val, _ProgrammableTupleBase):
+            if isinstance(type(val), ProgrammableTupleMeta):
                 # Recurse for programmable tuple children.
                 val = val._asdict(full=full, class_tags=class_tags)
             dict_[fn] = val
@@ -676,7 +671,7 @@ class _ProgrammableTupleBase(metaclass=ProgrammableTupleMeta):
 
 
 class ProgrammableTuple(
-    _ProgrammableTupleBase, tuple, metaclass=ProgrammableTupleMeta
+    tuple, _UtilMethodsMixin, metaclass=ProgrammableTupleMeta
 ):
     """The programmable tuple base class
 
@@ -689,7 +684,7 @@ class ProgrammableTuple(
     pass
 
 
-class ProgrammableExpr(_ProgrammableTupleBase):
+class ProgrammableExpr(_UtilMethodsMixin, metaclass=ProgrammableTupleMeta):
     """The programmable expression base class
 
     This base class is similar to the :py:class:`ProgrammableTuple` class,
