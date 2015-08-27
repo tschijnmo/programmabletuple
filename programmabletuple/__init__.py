@@ -183,6 +183,17 @@ def _form_proxy_class(name, bases, orig_nmspc, auto_defining):
     if auto_defining:
         proxy_class.__init__ = _add_auto_defining(proxy_class.__init__)
 
+    # HACK: Patch a local version of the built-in super function so that any
+    # calling with programmable tuple class will in fact be dispatched to the
+    # corresponding proxy class. This should be fixed when ways to better
+    # control the resolution of ``__class__`` cell is found.
+    def patched_super(self, cls=proxy_class):
+        """Patched super function for initialization"""
+        if isinstance(cls, ProgrammableTupleMeta):
+            cls = cls.__Proxy_Class__
+        return super(cls, self)
+    proxy_class.super = patched_super
+
     return proxy_class
 
 
