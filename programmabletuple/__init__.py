@@ -117,11 +117,13 @@ def _determine_fields(bases, nmspc):
         init_meth = nmspc['__init__']
         init_argnames = _get_argnames(init_meth)
     except KeyError:
-        raise ValueError('Initializer needs to be explicitly given.')
+        defining_fields = []
+        defining_count = 0
     except AttributeError:
         raise ValueError('Initializer needs to be a function.')
-    defining_fields = init_argnames[1:]
-    defining_count = len(defining_fields)
+    else:
+        defining_fields = init_argnames[1:]
+        defining_count = len(defining_fields)
 
     # Remove the defining fields that is already added as data fields from
     # base classes.
