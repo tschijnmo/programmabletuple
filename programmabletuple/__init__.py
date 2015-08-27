@@ -285,10 +285,9 @@ def _gen_programmable_tuple_bases(raw_bases):
 
     for base in raw_bases:
         if isinstance(base, ProgrammableTupleMeta):
-            if base is ProgrammableTuple or base is ProgrammableExpr:
-                continue
-            else:
-                yield base
+            yield base
+        elif base is tuple:
+            continue
         else:
             raise TypeError(
                 'Type {} is not programmable tuple'.format(base)
