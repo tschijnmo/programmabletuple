@@ -33,12 +33,11 @@ class ProgrammableTupleMeta(type):
     actual programmable tuple. In this meta-class, the core functionality of
     defining the proxy class and wrapping the user-defined init function is
     performed. The definition of utility methods are in the base class
-    :py:class:`ProgrammableTuple` definition.
+    :py:class:`_ProgrammableTupleBase` definition.
 
     """
 
-    def __new__(mcs, name, bases, nmspc,
-                subclass_tuple=True, auto_defining=False):
+    def __new__(mcs, name, bases, nmspc, auto_defining=False):
         """Generates a new type instance for programmable tuple class"""
 
         # Make a shallow copy of the original namespace. This new copy can be
@@ -284,7 +283,7 @@ def _gen_programmable_tuple_bases(raw_bases):
 
     for base in raw_bases:
         if isinstance(base, ProgrammableTupleMeta):
-            if base is ProgrammableTuple:
+            if base is ProgrammableTuple or base is ImmutableClass:
                 continue
             else:
                 yield base
@@ -301,12 +300,12 @@ def _gen_programmable_tuple_bases(raw_bases):
 # The base programmable tuple class
 # =================================
 #
-# The public class definition
-# ---------------------------
+# The base of the bases
+# ---------------------
 #
 
 
-class ProgrammableTuple(metaclass=ProgrammableTupleMeta):
+class _ProgrammableTupleBase(metaclass=ProgrammableTupleMeta):
 
     """
     The programmable tuple base class
@@ -314,8 +313,10 @@ class ProgrammableTuple(metaclass=ProgrammableTupleMeta):
     This class will be of meta-type :py:class:`ProgrammableTupleMeta`,
     and will define utility methods for working with programmable tuples.
     Most of the utility methods directly parallels those for the
-    ``namedtuple`` class. Users can just derive from this base class to make
-    the class a programmable tuple class.
+    ``namedtuple`` class.
+
+    This class is going to be mixed in into the two public base classes to
+    provide the utilities.
 
     """
 
@@ -486,7 +487,7 @@ class ProgrammableTuple(metaclass=ProgrammableTupleMeta):
         dict_ = {}
         for fn in included_fields:
             val = getattr(self, fn)
-            if isinstance(val, ProgrammableTuple):
+            if isinstance(val, _ProgrammableTupleBase):
                 # Recurse for programmable tuple children.
                 val = val._asdict(full=full, class_tags=class_tags)
             dict_[fn] = val
@@ -665,6 +666,38 @@ class ProgrammableTuple(metaclass=ProgrammableTupleMeta):
         return tuple(
             self.__content__[0:self.__defining_count__]
         )
+
+
+#
+# Public base classes
+# -------------------
+#
+
+
+class ProgrammableTuple(
+    _ProgrammableTupleBase, tuple, metaclass=ProgrammableTupleMeta
+):
+    """The programmable tuple base class
+
+    This is an abstract base class for the programmable tuples. Users can
+    just derive from this base class to make the class a programmable tuple
+    class.
+
+    """
+
+    pass
+
+
+class ImmutableClass(_ProgrammableTupleBase):
+    """The immutable class base class
+
+    This base class is similar to the :py:class:`ProgrammableTuple` class,
+    just it is not a subclass of tuple. So it can be used when the desired
+    data structure is not intended to behave like a tuple.
+
+    """
+
+    pass
 
 
 #
