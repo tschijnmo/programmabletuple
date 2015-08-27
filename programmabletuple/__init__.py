@@ -162,14 +162,14 @@ def _form_proxy_class(name, bases, orig_nmspc, auto_defining):
     """
 
     # Retrieve the proxy classes for the base classes.
-    proxy_bases = [
+    proxy_bases = tuple(
         i.__Proxy_Class__ for i in _gen_programmable_tuple_bases(bases)
-    ]
+    )
 
     # Derive the new proxy class from the proxy classes of the bases.
     proxy_class = type(
         '{}ProxyClass'.format(name),
-        proxy_bases if len(proxy_bases) > 0 else [object, ],
+        proxy_bases if len(proxy_bases) > 0 else (object, ),
         orig_nmspc
     )
 
