@@ -1,9 +1,7 @@
-
 programmabletuple
 =================
 
-Python metaclass for making named tuples with the programmability of user-
-defined classes
+Adding the programmability of normal classes to named tuples
 
 .. image:: https://travis-ci.org/tschijnmo/programmabletuple.svg?branch=master
     :target: https://travis-ci.org/tschijnmo/programmabletuple
@@ -14,31 +12,16 @@ defined classes
 .. image:: https://badge.fury.io/py/programmabletuple.svg
     :target: http://badge.fury.io/py/programmabletuple
 
-In essence, the programmable tuple metaclass in this module is able to make
-user-defined classes in Python has got the immutability of named tuple while
-retaining the programmability of user-defined classes. Merely minimal change
-to the code for class definition is needed, and a lot feature from class
-definition, like methods and inheritance, are supported.
+In essence, the programmable tuple base in this module is able to make
+user-defined classes in Python has got the immutability of named tuple, while
+retaining the programmability of user-defined classes at the same time. Merely
+minimal change to the code for class definition is needed, and a lot features
+for normal classes definition, like methods and inheritance, are supported.
 
-The basic motivation for this is to make code more secure and less error- prone
-for objects that does not frequently need to be mutated during its life time.
-Frequently in Python code, we have got structures (any structure) holding
-references to instances of user-defined classes, which by default are all
-mutable. But sometimes the correctness of the behaviour of the structure would
-depend on the assumption that the objects that these references point to will
-not be mutated. A solution to this problem is to make copies of the instances
-into the structure rather than just hold a reference and share the actual
-object. In this way, other parts of the code could safely mutate the states of
-the instances without any undesirable side effect. However, the copying comes
-with cost. For cases where the the objects referenced will almost definitely be
-mutated, this cost is necessary. But for cases where the objects are unlikely
-to be mutated in the majority of cases, the copying might cease to be an
-economical choice. So the basic idea of this metaclass is that we could have a
-means to enforce the references to be pointing the the same value, while we can
-still make new instances out of the old ones if they really need to be mutated.
-It can be construed as an attempt to make Python more functional while
-maintaining its object-orientated aspect. The resulted programmable tuple
-resembles a hybrid of the Haskell record and the user-defined class in Python.
+The basic motivation for this is to make code more secure and less error-prone
+for objects that does not frequently need to be mutated during its life time,
+especially when we do not want to relinquish the extensibility and
+programmability of normal classes by changing to use the austere tuples.
 
 Basic usage
 -----------
@@ -47,24 +30,25 @@ Fields
 ^^^^^^
 
 The programmable tuple is directly modelled after the named tuple class in the
-standard library. So unlike plain user-defined classes, the instances could
-only have a set of pre-defined fields for each class. Since instances cannot
-be changed after the initialization, all the information about instances of an
-immutable class needs to be given to the initializer. So the arguments of the
-initializer uniquely define values of the programmable tuple. Hence they are
-called the defining fields of the class. Besides the defining fields,
-additional fields can be added to the class instances to hold some other
-essential data. These fields are going to be termed the data fields. This can
-be achieved by assigning a list of names to the ``__data_fields__`` attribute
-of the class, in the same way as the ``__slots__`` attribute is used. And the
-actual value for the data fields can be set in the initializer in the same way
-as normal. For example, to define an programmable tuple for people to store
-their first and last name, and we would like the instances to carry the full
-name with comma separation for alphabetization, we can just define
+standard library. So unlike plain user-defined classes with an extensible
+``__dict__``, the instances could only have a set of pre-defined fields for
+each class. Since instances cannot be changed after the initialization, all
+the information about an instance needs to be given to the initializer. So the
+arguments to the initializer uniquely define values of the programmable tuple.
+Hence they are called the defining fields of the class. Besides the defining
+fields, additional fields can be added to the class instances to hold some
+other essential data. These fields are going to be termed the data fields.
+This can be achieved by assigning a list of names to the ``__data_fields__``
+attribute of the class, in the same way as the ``__slots__`` attribute is
+used. And the actual value for the data fields can be set in the initializer
+in the same way as normal. For example, to define an programmable tuple for
+people to store their first and last name, and we would like the instances to
+carry the full name with comma separation for alphabetization, we can just
+define
 
 .. code:: python
 
-    class Person(metaclass=ProgrammableTuple):
+    class Person(ProgrammableTuple):
         __data_fields__ = ['full_name']
         def __init__(self, first_name, last_name):
             self.full_name = ', '.join([last_name, first_name])
@@ -124,7 +108,7 @@ derivative with respect to a symbol, we could do
         """Compute the derivative w.r.t. a symbol"""
         ... ...
 
-    class Expr(metaclass=ImmutableClass):
+    class Expr(ProgrammableTuple):
         ... ...
         diff = diff_expr
         ... ...
