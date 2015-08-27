@@ -645,9 +645,12 @@ class _UtilMethodsMixin(object):
 
     def __setattr__(self, attr, value):
         """Raises Attribute Error for attempts to mutate"""
-        raise AttributeError(
-            'Cannot mutate attributes of programmable tuples'
-        )
+        if attr == '__content__':
+            super().__setattr__(attr, value)
+        else:
+            raise AttributeError(
+                'Cannot mutate attributes of programmable tuples'
+            )
 
     #
     # Utility methods
@@ -775,8 +778,6 @@ def _make_programmable_tuple(cls, data_values):
         #
         # Create the tuple.
         tp = tuple.__new__(cls, data_values)
-        # Assign the content attribute for consistency of treatment.
-        tp.__content__ = tp
     else:
         # For non-subclass of tuples.
         content = tuple(data_values)
