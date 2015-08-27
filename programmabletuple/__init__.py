@@ -304,7 +304,7 @@ def _gen_programmable_tuple_bases(raw_bases):
             yield base
         continue
 
-    return None
+    return
 
 
 #
