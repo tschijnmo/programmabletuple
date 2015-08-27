@@ -240,15 +240,22 @@ class ImmutableClassTest(unittest.TestCase):
 
         for jsmith in self.jsmiths:
 
-            plain_def_dict = jsmith._asdict()
-            plain_full_dict = jsmith._asdict(full=True)
+            # Tests the conversion to dictionaries.
+            def_dict = jsmith._asdict()
+            full_dict = jsmith._asdict(full=True)
 
-            for i in [plain_def_dict, plain_full_dict]:
+            for i in [def_dict, full_dict]:
                 self.assertEqual(i['first_name'], 'John')
                 self.assertEqual(i['last_name'], 'Smith')
                 self.assertEqual(i['age'], 49)
 
-            self.assertEqual(len(plain_def_dict), 3)
+            self.assertEqual(len(def_dict), 3)
 
-            self.assertEqual(plain_full_dict['full_name'], 'Smith, John')
-            self.assertEqual(len(plain_full_dict), 4)
+            self.assertEqual(full_dict['full_name'], 'Smith, John')
+            self.assertEqual(len(full_dict), 4)
+
+            # Tests the loading from dictionaries.
+            resolved_jsmith = jsmith._load_from_dict(def_dict)
+            self.assertEqual(jsmith, resolved_jsmith)
+            resolved_jsmith = jsmith._load_from_dict(full_dict, full=True)
+            self.assertEqual(jsmith, resolved_jsmith)
